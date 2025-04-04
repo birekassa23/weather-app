@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Weather App</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        margin-top: 50px;
+      }
+      input {
+        padding: 8px;
+        font-size: 16px;
+      }
+      button {
+        padding: 8px 16px;
+        font-size: 16px;
+      }
+      #weather {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🌦️ Simple Weather App</h1>
+    <input
+      type="text"
+      id="cityInput"
+      placeholder="Enter city"
+      oninput="fetchCities()"
+      autocomplete="off"
+    />
+    <div
+      id="suggestions"
+      style="
+        border: 1px solid #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+        position: absolute;
+        background: white;
+      "
+    ></div>
+
+    <button onclick="getWeather()">Get Weather</button>
+
+    <div id="weather"></div>
+
+    <script>
+      async function getWeather() {
+        const city = document.getElementById("cityInput").value;
+        const res = await fetch(`/weather?city=${city}`);
+        const data = await res.json();
+
+        if (data.main) {
+          document.getElementById("weather").innerHTML = `
+          <h2>${data.name}</h2>
+          <p><strong>Temperature:</strong> ${data.main.temp}°C</p>
+          <p><strong>Weather:</strong> ${data.weather[0].description}</p>
+        `;
+        } else {
+          document.getElementById("weather").innerText =
+            "Could not fetch weather data.";
+        }
+      }
+    </script>
+    <script>
+      async function fetchCities() {
+        const input = document.getElementById("cityInput");
+        const suggestionsBox = document.getElementById("suggestions");
+        const query = input.value;
+
+        if (query.length < 2) {
+          suggestionsBox.innerHTML = "";
+          return;
+        }
+
+        const res = await fetch(`/cities?q=${query}`);
+        const cities = await res.json();
+
+        suggestionsBox.innerHTML = cities
+          .map(
+            (city) =>
+              `<div onclick="selectCity('${city.name}')">${city.name}</div>`
+          )
+          .join("");
+      }
+
+      function selectCity(name) {
+        document.getElementById("cityInput").value = name;
+        document.getElementById("suggestions").innerHTML = "";
+      }
+    </script>
+  </body>
+</html>
